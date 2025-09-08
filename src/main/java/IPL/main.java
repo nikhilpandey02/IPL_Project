@@ -6,21 +6,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-// Main class containing all IPL logic
 public class main {
-
-    // ========= Data Structures =========
     static ArrayList<String> matchHeader = new ArrayList<>();
     static ArrayList<String> deliveryHeader = new ArrayList<>();
-
-    //id -> match_details
     static HashMap<Long, Matchmodel> matchDataStore = new HashMap<>();
-
-    //store delivery data
     static ArrayList<Deliverymodel> deliveryModelArrayList = new ArrayList<>();
-   // static HashMap<Long,Long> idSession=new HashMap<>();
 
-    // ========= Data Loading =========
     public static void loadMatchData(String path) {
         try {
             BufferedReader bf = new BufferedReader(new FileReader(path));
@@ -49,7 +40,6 @@ public class main {
         }
     }
 
-    // ========= Setters =========
     public static void setMatchData(String[] data) {
         if (matchHeader.isEmpty()) {
             Collections.addAll(matchHeader, data);
@@ -121,7 +111,6 @@ public class main {
         }
     }
 
-    // ========= Query Methods =========
     public static HashMap<Long, Long> matchplayerperYear() {
         HashMap<Long, Long> map = new HashMap<>();
         for (Long matchId : matchDataStore.keySet()) {
@@ -147,7 +136,7 @@ public class main {
                 for (Deliverymodel d : deliveryModelArrayList) {
                     if (id.equals(d.getMatchId())) {
                         String teamName = d.getBowlingTeam();
-                        Long run =d.getWideRuns()+ d.getByeRuns() + d.getLegbyeRuns() + d.getNoballRuns() + (long) d.getPenaltyRuns();
+                        Long run = d.getWideRuns() + d.getByeRuns() + d.getLegbyeRuns() + d.getNoballRuns() + (long)d.getPenaltyRuns();
                         map.put(teamName, map.getOrDefault(teamName, 0L) + run);
                     }
                 }
@@ -158,29 +147,22 @@ public class main {
 
     public static PriorityQueue<Pair> geteconomical(Long year) {
         PriorityQueue<Pair> pq = new PriorityQueue<>((a, b) -> Double.compare(a.val, b.val));
-        HashMap<String,Count> map = new HashMap<>();
-        for(Long id:matchDataStore.keySet())
-        {
-            Matchmodel matchData=matchDataStore.get(id);
-            Long session=matchData.getSeason();
-            if(year.equals(session))
-            {
-                for(int i=0;i<deliveryModelArrayList.size();i++)
-                {
-                    Deliverymodel d=deliveryModelArrayList.get(i);
-                    Long matchId=d.getMatchId();
-                    if(id.equals(matchId))
-                    {
+        HashMap<String, Count> map = new HashMap<>();
+        for (Long id : matchDataStore.keySet()) {
+            Matchmodel matchData = matchDataStore.get(id);
+            Long session = matchData.getSeason();
+            if (year.equals(session)) {
+                for (int i = 0; i < deliveryModelArrayList.size(); i++) {
+                    Deliverymodel d = deliveryModelArrayList.get(i);
+                    Long matchId = d.getMatchId();
+                    if (id.equals(matchId)) {
                         long runs = d.getTotalRuns() - d.getByeRuns() - d.getLegbyeRuns();
-
-                        ;
-                        String bowler=d.getBowler();
-                        if(!map.containsKey(bowler))
-                        {
-                            map.put(bowler,new Count(0L,0L));
+                        String bowler = d.getBowler();
+                        if (!map.containsKey(bowler)) {
+                            map.put(bowler, new Count(0L, 0L));
                         }
-                        Count c=map.get(bowler);
-                        c.total_run+=runs;
+                        Count c = map.get(bowler);
+                        c.total_run += runs;
                         if (d.getWideRuns() == 0 && d.getNoballRuns() == 0) {
                             c.total_bowl += 1;
                         }
@@ -188,22 +170,18 @@ public class main {
                 }
             }
         }
-        for(String key:map.keySet())
-        {
-            Count c=map.get(key);
-            Long run=c.total_run;
-            Double bowl=c.total_bowl/6.0;
-            if(c.total_bowl>0) {
+        for (String key : map.keySet()) {
+            Count c = map.get(key);
+            Long run = c.total_run;
+            Double bowl = c.total_bowl / 6.0;
+            if (c.total_bowl > 0) {
                 Double economy = run / bowl;
                 pq.add(new Pair(key, economy));
             }
         }
-
-
         return pq;
     }
 
-    // ========= Main Execution =========
     public static void main(String[] args) {
         String matchFilePath = "D:\\IPL Dataset\\matches.csv";
         String deliveryFilePath = "D:\\IPL Dataset\\deliveries.csv";
@@ -211,46 +189,32 @@ public class main {
         loadMatchData(matchFilePath);
         loadDeliveryData(deliveryFilePath);
 
-        //totalmatchperyearplayed
-        // HashMap<Long,Long> totalmatchperYear=iplservice.matchplayerperYear();
-        // for(Long year:totalmatchperYear.keySet())
-        // { // System.out.println(year+ " "+totalmatchperYear.get(year));
-        // } //
-
-        // totalmatchwinyearplayed
-        // HashMap<String,Long> totalmatchwonperYear=iplservice.matchwonperYear();
-        // for(String year:totalmatchwonperYear.keySet())
-        // {
-        // System.out.println(year+ " "+totalmatchwonperYear.get(year));
-        // }
-
-        // Example: Extra runs conceded in 2016
         Map<String, Long> extrarunperYear = extrarungivenperteamperYear(2016L);
         for (String team : extrarunperYear.keySet()) {
             System.out.println(team + " " + extrarunperYear.get(team));
         }
 
-        //bowler economy
-        PriorityQueue<Pair> bowlerEconomy=main.geteconomical(2016L);
-        System.out.println(bowlerEconomy.peek().name+" "+bowlerEconomy.peek().val);
+        PriorityQueue<Pair> bowlerEconomy = main.geteconomical(2016L);
+        System.out.println(bowlerEconomy.peek().name + " " + bowlerEconomy.peek().val);
     }
 }
 
-// ========= Helper Class =========
 class Pair {
     String name;
     Double val;
+
     public Pair(String name, Double val) {
         this.name = name;
         this.val = val;
     }
 }
-class Count{
+
+class Count {
     Long total_run;
     Long total_bowl;
-    public Count(Long total_run,Long total_bowl){
-        this.total_bowl=total_bowl;
-        this.total_run=total_run;
 
+    public Count(Long total_run, Long total_bowl) {
+        this.total_bowl = total_bowl;
+        this.total_run = total_run;
     }
 }

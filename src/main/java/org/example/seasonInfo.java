@@ -2,7 +2,11 @@ package org.example;
 
 public class seasonInfo {
 
+<<<<<<< HEAD
     Long totalMatch=0L;
+=======
+    Long totalMatch;
+>>>>>>> d372fd1b82a127f213d9eee1d800a151d3f24e30
     String winner;
     String manoftheMatch;
     //here mostruninyear should have player name too so thinking of make pair or letsee.
@@ -16,9 +20,14 @@ public class seasonInfo {
         return totalMatch;
     }
 
+<<<<<<< HEAD
     public void setTotalMatch() {
 
         this.totalMatch += 1;
+=======
+    public void setTotalMatch(Long totalMatch) {
+        this.totalMatch = totalMatch;
+>>>>>>> d372fd1b82a127f213d9eee1d800a151d3f24e30
     }
 
     public String getWinner() {

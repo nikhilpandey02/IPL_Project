@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class Team {
 
+<<<<<<< HEAD
     private   String teamName;
     private String ownerName;
     private HashMap<String,Long> matchwonperYear=new HashMap<>();
@@ -31,6 +32,24 @@ public class Team {
         teamNameExtraRun.put(teamName,teamNameExtraRun.getOrDefault(teamName,0L)+extraRun);
        // System.out.println(extrarunperYear.size());
         //extrarunperYear.put(year,extrarunperYear.getOrDefault(extraRun,0L)+1);
+=======
+
+    private   String teamName;
+   private String ownerName;
+    private HashMap<Long,Long> matchwonperYear=new HashMap<>();
+    private HashMap<Long,Long> extrarunperYear=new HashMap<>();
+
+
+
+    public void setMatchwonperYear(long year) {
+        matchwonperYear.put(year,matchwonperYear.getOrDefault(year,0L)+1);
+        for( Map.Entry<Long, Long> e : matchwonperYear.entrySet())
+        {}
+    }
+
+    public void setExtrarunperYear(long year,long extraRun) {
+        extrarunperYear.put(year,extrarunperYear.getOrDefault(extraRun,0L)+1);
+>>>>>>> d372fd1b82a127f213d9eee1d800a151d3f24e30
     }
 
     public String getTeamName() {
@@ -50,6 +69,7 @@ public class Team {
     }
 
 
+<<<<<<< HEAD
     public Long getmatchwonperyear(String teamName,long year) {
         if(!matchwonperYear.containsKey(teamName))return Long.valueOf(-1);
         return matchwonperYear.get(teamName);
@@ -63,3 +83,12 @@ public class Team {
     }
 }
 
+=======
+    public Long getmatchwonperyear(long year) {
+        return matchwonperYear.get(year);
+    }
+    public Long getextrarunperyear(long year) {
+        return extrarunperYear.get(year);
+    }
+}
+>>>>>>> d372fd1b82a127f213d9eee1d800a151d3f24e30

@@ -11,6 +11,51 @@ public class main {
     static ArrayList<String> deliveryHeader = new ArrayList<>();
     static HashMap<Long, Matchmodel> matchDataStore = new HashMap<>();
     static ArrayList<Deliverymodel> deliveryModelArrayList = new ArrayList<>();
+    public static HashMap<Long, HashMap<String, HashMap<String, Count>>> getEconomicalbyteambyvenuebyYear() {
+        HashMap<Long, HashMap<String, HashMap<String, Count>>> resultbyvenuebyYear = new HashMap<>();
+
+        for (Long matchId : matchDataStore.keySet()) {
+            String team1 = matchDataStore.get(matchId).getTeam1();
+            String team2 = matchDataStore.get(matchId).getTeam2();
+            Long year = matchDataStore.get(matchId).getSeason();
+            String venue = matchDataStore.get(matchId).getCity();
+
+            if (team1.equals("Mumbai Indians") || team2.equals("Mumbai Indians")) {
+               // System.out.println(year+" ");
+                for (int i = 0; i < deliveryModelArrayList.size(); i++) {
+                    Deliverymodel delivery = deliveryModelArrayList.get(i);
+                    //mistake doing == comparsion
+                    if (delivery.getMatchId().equals(matchId) && !delivery.getBowlingTeam().equals("Mumbai Indians")) {
+
+                        String bowlerName = delivery.getBowler();
+                        Long runs = (long) delivery.getTotalRuns()-delivery.getByeRuns()-delivery.getWideRuns();
+
+                        if (!resultbyvenuebyYear.containsKey(year)) {
+                            resultbyvenuebyYear.put(year, new HashMap<>());
+                        }
+                        HashMap<String, HashMap<String, Count>> venueBowler = resultbyvenuebyYear.get(year);
+
+                        if (!venueBowler.containsKey(venue)) {
+                            venueBowler.put(venue, new HashMap<>());
+                        }
+                        HashMap<String, Count> bowlereconomyList = venueBowler.get(venue);
+                        if (!bowlereconomyList.containsKey(bowlerName)) {
+                            bowlereconomyList.put(bowlerName, new Count(0L, 0L));
+                        }
+
+                        Count bowlerData = bowlereconomyList.get(bowlerName);
+
+                        bowlerData.total_run += runs;
+                        if (delivery.getWideRuns() == 0 && delivery.getNoballRuns()==0) {
+                            bowlerData.total_bowl += 1;
+                        }
+                    }
+                }
+            }
+        }
+        System.out.println(resultbyvenuebyYear.size());
+        return resultbyvenuebyYear;
+    }
 
     public static void loadMatchData(String path) {
         try {
@@ -39,7 +84,6 @@ public class main {
             System.out.println("Error reading delivery file: " + e.getMessage());
         }
     }
-
     public static void setMatchData(String[] data) {
         if (matchHeader.isEmpty()) {
             Collections.addAll(matchHeader, data);
@@ -145,42 +189,42 @@ public class main {
         return map;
     }
 
-    public static PriorityQueue<Pair> geteconomical(Long year) {
-        PriorityQueue<Pair> pq = new PriorityQueue<>((a, b) -> Double.compare(a.val, b.val));
-        HashMap<String, Count> map = new HashMap<>();
-        for (Long id : matchDataStore.keySet()) {
-            Matchmodel matchData = matchDataStore.get(id);
-            Long session = matchData.getSeason();
-            if (year.equals(session)) {
-                for (int i = 0; i < deliveryModelArrayList.size(); i++) {
-                    Deliverymodel d = deliveryModelArrayList.get(i);
-                    Long matchId = d.getMatchId();
-                    if (id.equals(matchId)) {
-                        long runs = d.getTotalRuns() - d.getByeRuns() - d.getLegbyeRuns();
-                        String bowler = d.getBowler();
-                        if (!map.containsKey(bowler)) {
-                            map.put(bowler, new Count(0L, 0L));
-                        }
-                        Count c = map.get(bowler);
-                        c.total_run += runs;
-                        if (d.getWideRuns() == 0 && d.getNoballRuns() == 0) {
-                            c.total_bowl += 1;
-                        }
-                    }
-                }
-            }
-        }
-        for (String key : map.keySet()) {
-            Count c = map.get(key);
-            Long run = c.total_run;
-            Double bowl = c.total_bowl / 6.0;
-            if (c.total_bowl > 0) {
-                Double economy = run / bowl;
-                pq.add(new Pair(key, economy));
-            }
-        }
-        return pq;
-    }
+//    public static PriorityQueue<Pair> geteconomical(Long year) {
+//        PriorityQueue<Pair> pq = new PriorityQueue<>((a, b) -> Double.compare(a.val, b.val));
+//        HashMap<String, Count> map = new HashMap<>();
+//        for (Long id : matchDataStore.keySet()) {
+//            Matchmodel matchData = matchDataStore.get(id);
+//            Long session = matchData.getSeason();
+//            if (year.equals(session)) {
+//                for (int i = 0; i < deliveryModelArrayList.size(); i++) {
+//                    Deliverymodel d = deliveryModelArrayList.get(i);
+//                    Long matchId = d.getMatchId();
+//                    if (id.equals(matchId)) {
+//                        long runs = d.getTotalRuns() - d.getByeRuns() - d.getLegbyeRuns();
+//                        String bowler = d.getBowler();
+//                        if (!map.containsKey(bowler)) {
+//                            map.put(bowler, new Count(0L, 0L));
+//                        }
+//                        Count c = map.get(bowler);
+//                        c.total_run += runs;
+//                        if (d.getWideRuns() == 0 && d.getNoballRuns() == 0) {
+//                            c.total_bowl += 1;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        for (String key : map.keySet()) {
+//            Count c = map.get(key);
+//            Long run = c.total_run;
+//            Double bowl = c.total_bowl / 6.0;
+//            if (c.total_bowl > 0) {
+//                Double economy = run / bowl;
+//                pq.add(new Pair(key, economy));
+//            }
+//        }
+//        return pq;
+//    }
 
     public static void main(String[] args) {
         String matchFilePath = "D:\\IPL Dataset\\matches.csv";
@@ -189,13 +233,51 @@ public class main {
         loadMatchData(matchFilePath);
         loadDeliveryData(deliveryFilePath);
 
-        Map<String, Long> extrarunperYear = extrarungivenperteamperYear(2016L);
-        for (String team : extrarunperYear.keySet()) {
-            System.out.println(team + " " + extrarunperYear.get(team));
-        }
+//        Map<String, Long> extrarunperYear = extrarungivenperteamperYear(2016L);
+//        for (String team : extrarunperYear.keySet()) {
+//            System.out.println(team + " " + extrarunperYear.get(team));
+//        }
 
-        PriorityQueue<Pair> bowlerEconomy = main.geteconomical(2016L);
-        System.out.println(bowlerEconomy.peek().name + " " + bowlerEconomy.peek().val);
+//       // PriorityQueue<Pair> bowlerEconomy = main.geteconomical(2016L);
+//        System.out.println(bowlerEconomy.peek().name + " " + bowlerEconomy.peek().val);
+
+
+        HashMap<Long,HashMap<String,HashMap<String,Count>>> geteconomicalbowlerbyTeam=main.getEconomicalbyteambyvenuebyYear();
+
+        for(Long year:geteconomicalbowlerbyTeam.keySet())
+        {
+
+            HashMap<String,HashMap<String,Count>> venue=geteconomicalbowlerbyTeam.get(year);
+            for(String venueList: venue.keySet())
+            {
+                HashMap<String,Count> bowlerList=venue.get(venueList);
+              //  PriorityQueue<Count> economicalBowler=new PriorityQueue<>((a,b)->Double.compare(a.total_bowl,b.total_bowl));
+                String bowlerName="";
+                Double min=Double.MAX_VALUE;
+                for(String bowlers:bowlerList.keySet())
+                {
+                    Count curr=bowlerList.get(bowlers);
+                    Long run=curr.total_run;
+                    Double total_Bowl=curr.total_bowl/6.0;
+                    Double calEconomy=0.0;
+                    Count c=null;
+                    if(total_Bowl>0)
+                    {
+                        calEconomy=run/total_Bowl;
+                    }
+
+                    if(calEconomy>0 && min>calEconomy)
+                    {
+                        min=calEconomy;
+                        bowlerName=bowlers;
+                    }
+                }
+                System.out.println("Year "+year+" Venue "+venueList+" Bowler Name "+ bowlerName+" economy "+ min);
+
+            }
+            System.out.println();
+
+        }
     }
 }
 
@@ -212,8 +294,10 @@ class Pair {
 class Count {
     Long total_run;
     Long total_bowl;
+   // String name;
 
-    public Count(Long total_run, Long total_bowl) {
+    public Count( Long total_run, Long total_bowl) {
+       //this.name=name;
         this.total_bowl = total_bowl;
         this.total_run = total_run;
     }
